@@ -1,7 +1,5 @@
-from flask import Flask, render_template_string, request, jsonify
-import re
-
-app = Flask(__name__)
+import streamlit as st
+import regex as re 
 
 # A simple dictionary to store responses for different keywords
 responses = {
@@ -18,79 +16,15 @@ def find_response(user_input):
             return response
     return "I'm sorry, I don't have information on that topic."
 
-index_template = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>HR Chatbot</title>
-</head>
-<body>
-    <h1>Welcome to HR Chatbot</h1>
-    <div id="chat-container">
-        <div id="chat-display"></div>
-        <div id="user-input">
-            <input type="text" id="user-input-box" placeholder="Ask your question here..." autofocus>
-            <button id="send-button">Send</button>
-        </div>
-    </div>
+def main():
+    st.title("HR Chatbot")
+    user_input = st.text_input("Ask your question here...")
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const chatDisplay = document.getElementById('chat-display');
-            const userInputElement = document.getElementById('user-input-box');
-            const sendButton = document.getElementById('send-button');
-
-            function addMessageToChat(message, sender) {
-                const messageElement = document.createElement('div');
-                messageElement.innerHTML = `<strong>${sender}: </strong>${message}`;
-                chatDisplay.appendChild(messageElement);
-            }
-
-            function sendMessage() {
-                const userInput = userInputElement.value.trim();
-                if (userInput !== '') {
-                    addMessageToChat(userInput, 'You');
-                    userInputElement.value = '';
-                    fetch('/chatbot', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: `user_input=${encodeURIComponent(userInput)}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        addMessageToChat(data.response, 'HR Bot');
-                    })
-                    .catch(error => {
-                        console.error('Error sending message:', error);
-                    });
-                }
-            }
-
-            sendButton.addEventListener('click', sendMessage);
-            userInputElement.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-
-            userInputElement.focus();
-        });
-    </script>
-</body>
-</html>
-"""
-
-@app.route("/")
-def index():
-    return render_template_string(index_template)
-
-@app.route("/chatbot", methods=["POST"])
-def chatbot():
-    user_input = request.form["user_input"]
-    response = find_response(user_input)
-    return jsonify({"response": response})
+    if st.button("Send"):
+        if user_input.strip():
+            st.markdown("**You:** " + user_input)
+            response = find_response(user_input)
+            st.markdown("**HR Bot:** " + response)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    main()
